@@ -1,45 +1,52 @@
 // ======================================
-// ROBO SUMO SIMPLES
-// ESP32 + SHARP + QRE + L298N
+// ROBO SUMO COMPLETO
+// 5 SHARPS + 2 QRE + L298N
+// ESP32
 // ======================================
 
-// ==========================
-// SHARP
-// ==========================
+// ======================================
+// SHARPS
+// ======================================
 
-// Sharp frontal
+// Frente centro
 #define SHARP_FRENTE 34
 
-// Sharp esquerda
-#define SHARP_ESQ 35
+// Frente canto esquerdo
+#define SHARP_FRENTE_ESQ 35
 
-// Sharp direita
-#define SHARP_DIR 32
+// Frente canto direito
+#define SHARP_FRENTE_DIR 32
 
-// ==========================
+// Lateral esquerda
+#define SHARP_LADO_ESQ 33
+
+// Lateral direita
+#define SHARP_LADO_DIR 25
+
+// ======================================
 // QRE
-// ==========================
+// ======================================
 
 #define QRE_ESQ 26
 #define QRE_DIR 27
 
-// ==========================
+// ======================================
 // L298N
-// ==========================
+// ======================================
 
 // Motor esquerdo
 #define IN1 14
 #define IN2 12
-#define ENA 25
+#define ENA 4
 
 // Motor direito
 #define IN3 13
 #define IN4 15
-#define ENB 33
+#define ENB 5
 
-// ==========================
+// ======================================
 // PWM
-// ==========================
+// ======================================
 
 #define PWM_A 0
 #define PWM_B 1
@@ -63,7 +70,7 @@ void setup() {
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
 
-  // PWM ESP32
+  // PWM
   ledcSetup(PWM_A, 5000, 8);
   ledcAttachPin(ENA, PWM_A);
 
@@ -71,7 +78,7 @@ void setup() {
   ledcAttachPin(ENB, PWM_B);
 
   // Velocidade inicial
-  velocidade(200, 200);
+  velocidade(180, 180);
 }
 
 // ======================================
@@ -139,41 +146,58 @@ void parar() {
 
 void loop() {
 
-  // ==========================
-  // LEITURA DOS SENSORES
-  // ==========================
+  // ======================================
+  // LEITURA DOS SHARPS
+  // ======================================
 
-  int sharpFrente = analogRead(SHARP_FRENTE);
-  int sharpEsq = analogRead(SHARP_ESQ);
-  int sharpDir = analogRead(SHARP_DIR);
+  int frente = analogRead(SHARP_FRENTE);
+
+  int frenteEsq = analogRead(SHARP_FRENTE_ESQ);
+
+  int frenteDir = analogRead(SHARP_FRENTE_DIR);
+
+  int ladoEsq = analogRead(SHARP_LADO_ESQ);
+
+  int ladoDir = analogRead(SHARP_LADO_DIR);
+
+  // ======================================
+  // LEITURA QRE
+  // ======================================
 
   int qreEsq = digitalRead(QRE_ESQ);
+
   int qreDir = digitalRead(QRE_DIR);
 
-  // ==========================
-  // MONITOR SERIAL
-  // ==========================
+  // ======================================
+  // SERIAL
+  // ======================================
 
-  Serial.print("Frente: ");
-  Serial.print(sharpFrente);
+  Serial.print("F:");
+  Serial.print(frente);
 
-  Serial.print(" | Esq: ");
-  Serial.print(sharpEsq);
+  Serial.print(" FE:");
+  Serial.print(frenteEsq);
 
-  Serial.print(" | Dir: ");
-  Serial.print(sharpDir);
+  Serial.print(" FD:");
+  Serial.print(frenteDir);
 
-  Serial.print(" | QRE E: ");
+  Serial.print(" LE:");
+  Serial.print(ladoEsq);
+
+  Serial.print(" LD:");
+  Serial.print(ladoDir);
+
+  Serial.print(" QRE E:");
   Serial.print(qreEsq);
 
-  Serial.print(" | QRE D: ");
+  Serial.print(" QRE D:");
   Serial.println(qreDir);
 
   // ======================================
   // QRE TEM PRIORIDADE
   // ======================================
 
-  // Detectou linha nos dois
+  // Linha nos dois lados
   if(qreEsq == 0 && qreDir == 0){
 
     Serial.println("LINHA NOS DOIS");
@@ -210,11 +234,11 @@ void loop() {
   }
 
   // ======================================
-  // SHARP
+  // SHARPS
   // ======================================
 
   // Inimigo na frente
-  else if(sharpFrente > 1000){
+  else if(frente > 1000){
 
     Serial.println("INIMIGO FRENTE");
 
@@ -223,23 +247,46 @@ void loop() {
     frente();
   }
 
-  // Inimigo esquerda
-  else if(sharpEsq > 1000){
+  // Frente esquerda
+  else if(frenteEsq > 1000){
 
-    Serial.println("INIMIGO ESQUERDA");
+    Serial.println("INIMIGO FRENTE ESQUERDA");
+
+    velocidade(180, 255);
+
+    frente();
+  }
+
+  // Frente direita
+  else if(frenteDir > 1000){
+
+    Serial.println("INIMIGO FRENTE DIREITA");
+
+    velocidade(255, 180);
+
+    frente();
+  }
+
+  // Lado esquerdo
+  else if(ladoEsq > 1000){
+
+    Serial.println("INIMIGO LADO ESQUERDO");
 
     esquerda();
   }
 
-  // Inimigo direita
-  else if(sharpDir > 1000){
+  // Lado direito
+  else if(ladoDir > 1000){
 
-    Serial.println("INIMIGO DIREITA");
+    Serial.println("INIMIGO LADO DIREITO");
 
     direita();
   }
 
-  // Procurando inimigo
+  // ======================================
+  // PROCURAR ADVERSARIO
+  // ======================================
+
   else{
 
     Serial.println("PROCURANDO");
